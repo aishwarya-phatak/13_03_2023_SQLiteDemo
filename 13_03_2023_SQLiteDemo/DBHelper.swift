@@ -52,4 +52,41 @@ class DBHelper{
         }
         sqlite3_finalize(createTableStatement)
     }
+    
+    func insertEmployeeRecord(empId : Int, empName : String){
+        let insertQueryString = "INSERT INTO Employee(empId, empName) VALUES(?,?);"
+        var insertStatement : OpaquePointer? = nil
+        
+        if sqlite3_prepare_v2(db,
+                              insertQueryString,
+                              -1,
+                              &insertStatement,
+                              nil) == SQLITE_OK{
+            sqlite3_bind_int(insertStatement, 1, Int32(empId))
+            sqlite3_bind_text(insertStatement,
+                              2,
+                              (empName as NSString).utf8String,
+                              -1,
+                              nil)
+        } else {
+            print("Insert Query Statement Not Created")
+        }
+        sqlite3_finalize(insertStatement)
+    }
+    
+    func deleteEmployeeRecord(empId : Int){
+        let deleteQueryString = "DELETE FROM Employee WHERE empId = ?;"
+        var deleteStatement : OpaquePointer? = nil
+        if sqlite3_prepare_v2(db,
+                              deleteQueryString,
+                              -1,
+                              &deleteStatement,
+                              nil) == SQLITE_OK{
+            print("The delete statement is executed")
+            sqlite3_bind_int(deleteStatement, 1, Int32(empId))
+        } else {
+            print("The delete statement not prepared")
+        }
+        sqlite3_finalize(deleteStatement)
+    }
 }
