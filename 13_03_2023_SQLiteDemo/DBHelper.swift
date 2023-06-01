@@ -54,9 +54,15 @@ class DBHelper{
     }
     
     func insertEmployeeRecord(empId : Int, empName : String){
+        let e = retriveAllEmployees()
+        for eachEmp in e {
+            if (empId == eachEmp.empId){
+                print("Employee already existing")
+            }
+        }
+        
         let insertQueryString = "INSERT INTO Employee(empId, empName) VALUES(?,?);"
         var insertStatement : OpaquePointer? = nil
-        
         if sqlite3_prepare_v2(db,
                               insertQueryString,
                               -1,
@@ -68,6 +74,11 @@ class DBHelper{
                               (empName as NSString).utf8String,
                               -1,
                               nil)
+            if sqlite3_step(insertStatement) == SQLITE_DONE{
+                print("Row inserted scuccessfully")
+            } else {
+                print("Row insertion Failed")
+            }
         } else {
             print("Insert Query Statement Not Created")
         }
@@ -88,5 +99,31 @@ class DBHelper{
             print("The delete statement not prepared")
         }
         sqlite3_finalize(deleteStatement)
+    }
+    
+    func retriveAllEmployees()->[Employee]{
+        var employees : [Employee] = []
+        let retriveEmployessQueryString = "SELECT * FROM Employee;"
+        var retriveStatement : OpaquePointer? = nil
+        if sqlite3_prepare_v2(db,
+                              retriveEmployessQueryString,
+                              -1,
+                              &retriveStatement,
+                              nil) == SQLITE_OK{
+            while sqlite3_step(retriveStatement) == SQLITE_ROW{
+              let retrivedEmpId = sqlite3_column_int(retriveStatement, 0)
+              let retrivedEmpName = String(describing: String(cString:sqlite3_column_text(retriveStatement, 1)))
+                
+                employees.append(Employee(empId: Int(retrivedEmpId), empName: retrivedEmpName))
+//                print("Emp Details -- \(retrivedEmpId) -- \(retrivedEmpName)")
+            }
+            for eachEmp in employees{
+                print("Emp Id ==\(eachEmp.empId)")
+            }
+        }else {
+            print("Retrive Statment is not prepared")
+        }
+        sqlite3_finalize(retriveStatement)
+        return employees
     }
 }
